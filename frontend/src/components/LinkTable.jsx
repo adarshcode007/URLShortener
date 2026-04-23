@@ -1,47 +1,21 @@
-import { useEffect, useState } from "react";
 import GlassCard from "./GlassCard";
 import { useNavigate } from "react-router-dom";
-import api from "../hooks/useApi";
 
-export default function LinkTable() {
+export default function LinkTable({ links }) {
   const navigate = useNavigate();
-
-  const [links, setLinks] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const fetchLinks = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/urls");
-      setLinks(res.data);
-    } catch (err) {
-      setError("Failed to load links");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchLinks();
-  }, []);
 
   return (
     <GlassCard>
-      {/* Loading */}
-      {loading && <p className="text-gray-400">Loading links...</p>}
-
-      {/* Error */}
-      {error && <p className="text-red-400">{error}</p>}
-
-      {/* Data */}
-      {!loading && !error && (
+      {/* Empty State */}
+      {links.length === 0 ? (
+        <p className="text-gray-400 text-center py-4">No links created yet</p>
+      ) : (
         <table className="w-full">
           <thead className="text-gray-400">
             <tr>
-              <th>Short</th>
-              <th>Original</th>
-              <th>Clicks</th>
+              <th className="text-left p-2">Short</th>
+              <th className="text-left p-2">Original</th>
+              <th className="text-left p-2">Clicks</th>
               <th></th>
             </tr>
           </thead>
@@ -49,12 +23,13 @@ export default function LinkTable() {
           <tbody>
             {links.map((item, i) => (
               <tr key={i} className="border-t border-white/10">
-                <td>{item.shortCode}</td>
-                <td>{item.longUrl}</td>
-                <td>{item.clicks}</td>
+                <td className="p-2">{item.shortCode}</td>
+                <td className="p-2 truncate max-w-xs">{item.longUrl}</td>
+                <td className="p-2">{item.clicks || 0}</td>
+
                 <td>
                   <button
-                    className="text-blue-400"
+                    className="text-blue-400 hover:underline"
                     onClick={() => navigate(`/analytics/${item.shortCode}`)}
                   >
                     View

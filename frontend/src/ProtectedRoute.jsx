@@ -1,9 +1,30 @@
+import { useState } from "react";
 import { Navigate } from "react-router-dom";
 
 const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem("token");
+  const [loading, setLoading] = useState(true);
+  const [isAuth, setIsAuth] = useState(false);
 
-  if (!token) {
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        await api.get("/auth/me");
+        setIsAuth(true);
+      } catch (err) {
+        setIsAuth(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  if (loading) {
+    return <p className="text-center mt-10">Checking auth...</p>;
+  }
+
+  if (!isAuth) {
     return <Navigate to="/" replace />;
   }
 

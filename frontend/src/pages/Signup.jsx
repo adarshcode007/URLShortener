@@ -6,18 +6,36 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const navigate = useNavigate();
 
-  const handleSignup = () => {
-    // API call here
-    navigate("/dashboard");
+  const handleSignup = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      await api.post("/auth/signup", {
+        name,
+        email,
+        password,
+      });
+
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="relative flex justify-center items-center h-screen bg-[#0f172a] overflow-hidden">
       {/* Background Glow */}
-      <div className="absolute w-[500px] h-[500px] bg-purple-600/30 blur-3xl rounded-full top-[-100px] left-[-100px]" />
-      <div className="absolute w-[400px] h-[400px] bg-blue-600/30 blur-3xl rounded-full bottom-[-100px] right-[-100px]" />
+      <div className="absolute w-125 h-125 bg-purple-600/30 blur-3xl rounded-full top-[-100px] left-[-100px]" />
+      <div className="absolute w-125 h-125 bg-blue-600/30 blur-3xl rounded-full bottom-[-100px] right-[-100px]" />
 
       {/* Signup Card */}
       <motion.div
@@ -54,7 +72,6 @@ const Signup = () => {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        {/* Hint */}
         <p className="text-xs text-gray-400 mb-5">
           Password must be at least 6 characters
         </p>
