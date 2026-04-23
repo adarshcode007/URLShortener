@@ -5,12 +5,13 @@ import {
   getUserUrls,
   redirectUrl,
 } from "../controllers/url.controller.js";
+import { rateLimiter } from "../middlewares/rateLimiter.js";
 
 const router = express.Router();
 
-router.post("/", protect, createUrl);
+router.post("/", protect, rateLimiter, createUrl);
 router.get("/", protect, getUserUrls);
 
-router.get("/:code", redirectUrl);
+router.get("/:code", rateLimiter, redirectUrl);
 
 export default router;

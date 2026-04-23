@@ -40,11 +40,22 @@ export const redirectUrl = async (req, res) => {
   try {
     const { code } = req.params;
 
+    // 1. Check redis cache first
+    const cachedurl = await redis.get(code);
+
+    if (cachedUrl) {
+      return res.redirect(cachedUrl);
+    }
+
+    // 2. DB fallback
     const url = await Url.findOne({ shortCode: code });
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+      return res.status(404).send("URL not found");
     }
+
+    // 3. Cache it
+    await redis.set(code, url.longUrl, "EX", 60 * 60);
 
     url.clicks += 1;
     await url.save();
