@@ -1,4 +1,5 @@
 import Url from "../models/url.model.js";
+import { processAnalytics } from "../services/analytics.service.js";
 import { generateCode } from "../utils/generateCode.js";
 
 export const createUrl = async (req, res) => {
@@ -44,6 +45,7 @@ export const redirectUrl = async (req, res) => {
     const cachedurl = await redis.get(code);
 
     if (cachedUrl) {
+      processAnalytics(code, req); // async tracking
       return res.redirect(cachedUrl);
     }
 
