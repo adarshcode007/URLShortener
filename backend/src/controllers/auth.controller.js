@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import User from "../models/user.model.js";
 
 const generateAccessToken = (user) => {
   return jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -8,7 +9,7 @@ const generateAccessToken = (user) => {
 };
 
 const generateRefreshToken = (user) => {
-  return jet.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
+  return jwt.sign({ id: user._id }, process.env.JWT_REFRESH_SECRET, {
     expiresIn: "7d",
   });
 };
@@ -65,6 +66,7 @@ export const signup = async (req, res) => {
 
     res.json({ message: "Signup successful" });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: "Signup failed" });
   }
 };
