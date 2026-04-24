@@ -1,17 +1,18 @@
 import Redis from "ioredis";
+import dotenv from "dotenv";
+dotenv.config();
 
 let redis;
 
-try {
-  redis = new Redis({
-    host: "127.0.0.1",
-    port: 6379,
+if (!process.env.REDIS_URL) {
+  console.log("No REDIS_URL provided");
+} else {
+  redis = new Redis(process.env.REDIS_URL, {
+    tls: {},
   });
 
   redis.on("connect", () => console.log("Redis Connected"));
   redis.on("error", (err) => console.log("Redis Error: ", err.message));
-} catch (err) {
-  console.log("Redis not available");
 }
 
 export default redis;
