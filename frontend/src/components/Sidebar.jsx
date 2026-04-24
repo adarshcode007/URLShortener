@@ -5,7 +5,7 @@ export default function Sidebar() {
   return (
     <div className="w-64 h-screen p-5 bg-white/5 backdrop-blur-xl border-r border-white/10">
       <ul className="space-y-4">
-        {["Dashboard", "Analytics"].map((item) => (
+        {["Dashboard"].map((item) => (
           <motion.li whileHover={{ scale: 1.05 }} key={item}>
             <Link
               to={item === "Dashboard" ? "/dashboard" : "/analytics/demo"}

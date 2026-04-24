@@ -8,10 +8,12 @@ import {
   PieChart,
   Pie,
   Cell,
+  BarChart,
+  Bar,
 } from "recharts";
 import GlassCard from "../components/GlassCard";
 import { useParams } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../hooks/useApi";
 
 export default function Analytics() {
@@ -53,15 +55,27 @@ export default function Analytics() {
   }));
 
   // Device chart
-  const deviceData = data.deviceStats.map((d) => ({
-    name: d._id?.includes("Mobile") ? "Mobile" : "Desktop",
-    value: d.count,
+  const deviceMap = {};
+
+  data.deviceStats.forEach((d) => {
+    const device = d._id?.includes("Mobile") ? "Mobile" : "Desktop";
+    if (!deviceMap[device]) {
+      deviceMap[device] = 0;
+    }
+
+    deviceMap[device] += d.count;
+  });
+
+  const deviceData = Object.entries(deviceMap).map(([name, value]) => ({
+    name,
+    value,
   }));
 
   const COLORS = ["#8b5cf6", "#3b82f6", "#22c55e", "#f59e0b"];
 
   return (
-    <div>
+    // center the content and add some padding
+    <div className="max-w-6xl p-6 mx-auto">
       <h1 className="text-3xl mb-6">Analytics: {code}</h1>
 
       {/* Total Clicks*/}

@@ -1,19 +1,37 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
+import api from "../hooks/useApi";
+import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const token = localStorage.getItem("token");
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-  };
+  const [isAuth, setIsAuth] = useState(false);
 
   const isAuthPage =
     location.pathname === "/" || location.pathname === "/signup";
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const user = await api.get("/auth/me");
+        if (user) setIsAuth(true);
+      } catch (error) {
+        setIsAuth(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+      setIsAuth(false);
+      navigate("/");
+    } catch (err) {
+      console.error("Error logging out");
+    }
+  };
 
   return (
     <div className="fixed top-0 left-0 w-full z-50 bg-white/5 backdrop-blur-lg border-b border-white/10">
@@ -28,7 +46,7 @@ export default function Navbar() {
 
         {/* Right Section */}
         <div className="flex items-center gap-4">
-          {!token ? (
+          {!isAuth ? (
             <>
               {!isAuthPage && (
                 <motion.button

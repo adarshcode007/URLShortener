@@ -55,7 +55,8 @@ export default function Dashboard() {
   }, []);
 
   return (
-    <div>
+    // center the content and add some padding
+    <div className="max-w-6xl mx-auto p-6">
       <h1 className="text-3xl font-semibold mb-6">Dashboard</h1>
 
       {loading && <p className="text-gray-400">Loading dashboard...</p>}
