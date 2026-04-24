@@ -90,7 +90,7 @@ export default function Analytics() {
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={dailyData}>
             <XAxis dataKey="date" />
-            <YAxis />
+            <YAxis allowDecimals={false} />
             <Tooltip />
             <Line type="monotone" dataKey="clicks" stroke="#8b5cf6" />
           </LineChart>
