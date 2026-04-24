@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import api from "../hooks/useApi";
 
 const Signup = () => {
   const [name, setName] = useState("");
@@ -25,6 +26,7 @@ const Signup = () => {
 
       navigate("/dashboard");
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.message || "Signup failed");
     } finally {
       setLoading(false);
@@ -75,6 +77,9 @@ const Signup = () => {
         <p className="text-xs text-gray-400 mb-5">
           Password must be at least 6 characters
         </p>
+
+        {/* Error */}
+        {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
 
         {/* Button */}
         <motion.button

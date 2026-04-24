@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import api from "./hooks/useApi";
 
 const ProtectedRoute = ({ children }) => {
   const [loading, setLoading] = useState(true);
@@ -25,6 +26,7 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!isAuth) {
+    console.log("Not authenticated, redirecting to login");
     return <Navigate to="/" replace />;
   }
 

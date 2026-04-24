@@ -44,6 +44,7 @@ export default function Dashboard() {
         setTotalClicks(clicksSum);
         setActiveToday(todayClicks);
       } catch (err) {
+        console.error(err);
         setError("Failed to load dashboard data");
       } finally {
         setLoading(false);

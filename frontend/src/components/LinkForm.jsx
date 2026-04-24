@@ -1,12 +1,21 @@
 import { useState } from "react";
 import GlassCard from "./GlassCard";
 import { motion } from "framer-motion";
+import api from "../hooks/useApi";
 
 export default function LinkForm() {
   const [url, setUrl] = useState("");
 
-  const handleSubmit = () => {
-    console.log(url);
+  const handleSubmit = async () => {
+    try {
+      const res = await api.post("/urls", {
+        longUrl: url,
+      });
+
+      console.log(res?.data);
+    } catch (err) {
+      console.error("Error Shortening URL:", err);
+    }
   };
 
   return (

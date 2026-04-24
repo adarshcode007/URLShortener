@@ -1,3 +1,5 @@
+import redis from "../config/redis.js";
+import Click from "../models/click.model.js";
 import Url from "../models/url.model.js";
 import { processAnalytics } from "../services/analytics.service.js";
 import { generateCode } from "../utils/generateCode.js";
@@ -27,13 +29,38 @@ export const createUrl = async (req, res) => {
 
 export const getUserUrls = async (req, res) => {
   try {
-    const urls = (await Url.find({ userId: req.user.id })).toSorted({
+    const urls = await Url.find({ userId: req.user.id }).sort({
       createdAt: -1,
     });
 
-    res.json(urls);
+    const codes = urls.map((u) => u.shortCode);
+
+    const clickData = await Click.aggregate([
+      { $match: { shortCode: { $in: codes } } },
+      {
+        $group: {
+          _id: "$shortCode",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // convert to map for easy lookup
+    const clickMap = {};
+    clickData.forEach((c) => {
+      clickMap[c._id] = c.count;
+    });
+
+    // attach click counts to urls
+    const result = urls.map((url) => ({
+      ...url.toObject(),
+      clicks: clickMap[url.shortCode] || 0,
+    }));
+
+    res.json(result);
   } catch (err) {
-    res.status(500).json({ message: "Faied to fetch URLs" });
+    console.error("GET URL ERROR:", err);
+    res.status(500).json({ message: "Failed to fetch URLs" });
   }
 };
 
@@ -44,9 +71,9 @@ export const redirectUrl = async (req, res) => {
     // 1. Check redis cache first
     const cachedurl = await redis.get(code);
 
-    if (cachedUrl) {
+    if (cachedurl) {
       processAnalytics(code, req); // async tracking
-      return res.redirect(cachedUrl);
+      return res.redirect(cachedurl);
     }
 
     // 2. DB fallback
@@ -59,11 +86,11 @@ export const redirectUrl = async (req, res) => {
     // 3. Cache it
     await redis.set(code, url.longUrl, "EX", 60 * 60);
 
-    url.clicks += 1;
-    await url.save();
+    processAnalytics(code, req);
 
     res.redirect(url.longUrl);
   } catch (err) {
+    console.error("REDIRECT ERROR:", err);
     res.status(500).json({ message: "Server error" });
   }
 };

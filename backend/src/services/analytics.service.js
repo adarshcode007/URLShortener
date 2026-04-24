@@ -5,7 +5,7 @@ export const processAnalytics = (code, req) => {
     try {
       await Click.create({
         shortCode: code,
-        userAgent: req.headers["user-agent"],
+        userAgent: req.headers["user-agent"] || "unknown",
         referrer: req.headers.referer || "direct",
       });
     } catch (err) {

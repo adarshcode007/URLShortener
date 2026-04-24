@@ -24,6 +24,7 @@ const Login = () => {
 
       navigate("/dashboard");
     } catch (err) {
+      console.error(err);
       setError(err.response?.data?.message || "Invalid credentials");
     } finally {
       setLoading(false);
