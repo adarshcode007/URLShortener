@@ -4,6 +4,7 @@ import {
   createUrl,
   getUserUrls,
   redirectUrl,
+  deleteUrl,
 } from "../controllers/url.controller.js";
 import { rateLimiter } from "../middlewares/rateLimiter.js";
 
@@ -11,6 +12,7 @@ const router = express.Router();
 
 router.post("/", protect, rateLimiter, createUrl);
 router.get("/", protect, getUserUrls);
+router.delete("/:id", protect, deleteUrl);
 
 router.get("/:code", rateLimiter, redirectUrl);
 

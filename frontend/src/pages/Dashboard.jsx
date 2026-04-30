@@ -97,7 +97,7 @@ export default function Dashboard() {
                 {links.length} total
               </span>
             </div>
-            <LinkTable links={links} />
+            <LinkTable links={links} onRefresh={fetchData} />
           </section>
         </motion.div>
       )}

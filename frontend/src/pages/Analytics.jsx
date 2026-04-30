@@ -15,7 +15,7 @@ import {
 import GlassCard from "../components/GlassCard";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../hooks/useApi";
 
 export default function Analytics() {
@@ -25,6 +25,8 @@ export default function Analytics() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -40,6 +42,21 @@ export default function Analytics() {
     };
     fetchAnalytics();
   }, [code]);
+
+  const handleDelete = async () => {
+    if (!data?._id) return;
+    try {
+      setIsDeleting(true);
+      await api.delete(`/urls/${data._id}`);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete link");
+    } finally {
+      setIsDeleting(false);
+      setShowConfirmDelete(false);
+    }
+  };
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
@@ -95,12 +112,22 @@ export default function Analytics() {
     >
       {/* Header Section */}
       <header className="flex flex-col gap-4">
-        <button 
-          onClick={() => navigate("/dashboard")}
-          className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1 group w-fit"
-        >
-          <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Dashboard
-        </button>
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={() => navigate("/dashboard")}
+            className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1 group w-fit"
+          >
+            <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Dashboard
+          </button>
+          
+          <button
+            onClick={() => setShowConfirmDelete(true)}
+            className="px-4 py-2 rounded-lg border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-all flex items-center gap-2"
+          >
+            <span>🗑</span> Delete Link
+          </button>
+        </div>
+
         <div className="flex flex-col gap-2">
           <h1 className="text-4xl font-bold tracking-tight text-white">Analytics: <span className="text-emerald-400 font-mono">{code}</span></h1>
           <p className="text-gray-400 text-lg">Detailed performance breakdown for your short link.</p>
@@ -197,6 +224,55 @@ export default function Analytics() {
           </div>
         </GlassCard>
       </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmDelete && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmDelete(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm"
+            >
+              <GlassCard className="!p-8 text-center space-y-6 shadow-2xl shadow-red-500/10 border-red-500/20">
+                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto text-red-400 text-2xl border border-red-500/20">
+                  🗑
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-white">Delete Link?</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    This action is permanent and will delete all associated analytics for <span className="text-white font-mono">{code}</span>.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmDelete(false)}
+                    className="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-semibold transition-colors border border-white/10"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex-1 py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-bold transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
