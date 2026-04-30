@@ -73,8 +73,10 @@ export default function Navbar() {
             <>
               <button
                 onClick={() => navigate("/dashboard")}
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === "/dashboard" ? "text-emerald-400" : "text-gray-400 hover:text-white"
+                className={`text-sm font-medium transition-colors cursor-pointer ${
+                  location.pathname === "/dashboard"
+                    ? "text-emerald-400"
+                    : "text-gray-400 hover:text-white"
                 }`}
               >
                 Dashboard
@@ -82,7 +84,7 @@ export default function Navbar() {
 
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400 hover:text-white hover:bg-white/5 transition-all"
+                className="px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-gray-400 cursor-pointer hover:text-white hover:bg-red-500 transition-all"
               >
                 Logout
               </button>

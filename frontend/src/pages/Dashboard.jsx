@@ -13,45 +13,36 @@ export default function Dashboard() {
   const [totalClicks, setTotalClicks] = useState(0);
   const [activeToday, setActiveToday] = useState(0);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/urls");
+      const urls = res.data;
+      setLinks(urls);
 
-        const res = await api.get("/urls");
-        const urls = res.data;
+      let clicksSum = 0;
+      let todayClicks = 0;
+      const today = new Date().toISOString().split("T")[0];
 
-        setLinks(urls);
-
-        const totalLinks = urls.length;
-
-        let clicksSum = 0;
-        let todayClicks = 0;
-
-        const today = new Date().toISOString().split("T")[0];
-
-        for (let url of urls) {
-          const analyticsRes = await api.get(`/analytics/${url.shortCode}`);
-
-          clicksSum += analyticsRes.data.totalClicks;
-
-          analyticsRes.data.dailyClicks.forEach((d) => {
-            if (d._id === today) {
-              todayClicks += d.count;
-            }
-          });
-        }
-
-        setTotalClicks(clicksSum);
-        setActiveToday(todayClicks);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load dashboard data");
-      } finally {
-        setLoading(false);
+      for (let url of urls) {
+        const analyticsRes = await api.get(`/analytics/${url.shortCode}`);
+        clicksSum += analyticsRes.data.totalClicks;
+        analyticsRes.data.dailyClicks.forEach((d) => {
+          if (d._id === today) todayClicks += d.count;
+        });
       }
-    };
 
+      setTotalClicks(clicksSum);
+      setActiveToday(todayClicks);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -95,7 +86,7 @@ export default function Dashboard() {
           {/* Action Section */}
           <section className="space-y-4">
             <h2 className="text-xl font-semibold text-white/90">Create New Link</h2>
-            <LinkForm />
+            <LinkForm onRefresh={fetchData} />
           </section>
 
           {/* Table Section */}
