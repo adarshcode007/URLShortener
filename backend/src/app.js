@@ -11,7 +11,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://shortify-url-shrt.vercel.app",
+    origin: ["https://shortify-url-shrt.vercel.app", "http://localhost:5173"],
     credentials: true,
   }),
 );

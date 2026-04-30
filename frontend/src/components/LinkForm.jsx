@@ -22,14 +22,14 @@ export default function LinkForm() {
     <GlassCard>
       <div className="flex gap-3">
         <input
-          className="flex-1 p-3 bg-white/10 rounded-lg outline-none"
+          className="flex-1 p-3 bg-white/5 border border-white/10 rounded-lg outline-none focus:border-emerald-500/50 transition-colors"
           placeholder="Paste your long URL..."
           onChange={(e) => setUrl(e.target.value)}
         />
 
         <motion.button
           whileTap={{ scale: 0.95 }}
-          className="px-5 rounded-lg bg-gradient-to-r from-purple-500 to-blue-500"
+          className="px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-black font-semibold transition-colors shadow-lg shadow-emerald-500/20"
           onClick={handleSubmit}
         >
           Shorten

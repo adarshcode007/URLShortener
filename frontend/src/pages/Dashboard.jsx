@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import LinkForm from "../components/LinkForm";
 import LinkTable from "../components/LinkTable";
 import StatsCard from "../components/StatsCard";
@@ -55,28 +56,59 @@ export default function Dashboard() {
   }, []);
 
   return (
-    // center the content and add some padding
-    <div className="max-w-6xl mx-auto p-6">
-      <h1 className="text-3xl font-semibold mb-6">Dashboard</h1>
+    <div className="max-w-5xl mx-auto space-y-10">
+      {/* Header Section */}
+      <header className="flex flex-col gap-2">
+        <h1 className="text-4xl font-bold tracking-tight text-white">Dashboard</h1>
+        <p className="text-gray-400 text-lg">Manage your shortened links and track their performance.</p>
+      </header>
 
-      {loading && <p className="text-gray-400">Loading dashboard...</p>}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+          <span className="ml-3 text-gray-400 font-medium">Loading your dashboard...</span>
+        </div>
+      )}
 
-      {error && <p className="text-red-400">{error}</p>}
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 font-medium">
+          {error}
+        </div>
+      )}
 
       {!loading && !error && (
-        <>
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            <StatsCard title="Total Links" value={links.length} />
-            <StatsCard title="Total Clicks" value={totalClicks} />
-            <StatsCard title="Active Today" value={activeToday} />
-          </div>
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="space-y-8"
+        >
+          {/* Stats Grid */}
+          <section>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <StatsCard title="Total Links" value={links.length} />
+              <StatsCard title="Total Clicks" value={totalClicks} />
+              <StatsCard title="Active Today" value={activeToday} />
+            </div>
+          </section>
 
-          <LinkForm />
+          {/* Action Section */}
+          <section className="space-y-4">
+            <h2 className="text-xl font-semibold text-white/90">Create New Link</h2>
+            <LinkForm />
+          </section>
 
-          <div className="mt-6">
+          {/* Table Section */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-white/90">Your Links</h2>
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
+                {links.length} total
+              </span>
+            </div>
             <LinkTable links={links} />
-          </div>
-        </>
+          </section>
+        </motion.div>
       )}
     </div>
   );
