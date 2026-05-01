@@ -9,7 +9,7 @@ export default function Navbar() {
   const [isAuth, setIsAuth] = useState(false);
 
   const isAuthPage =
-    location.pathname === "/" || location.pathname === "/signup";
+    location.pathname === "/login" || location.pathname === "/signup";
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,7 +21,7 @@ export default function Navbar() {
       }
     };
     checkAuth();
-  }, []);
+  }, [location.pathname]);
 
   const handleLogout = async () => {
     try {
@@ -53,7 +53,7 @@ export default function Navbar() {
             <>
               {!isAuthPage && (
                 <button
-                  onClick={() => navigate("/")}
+                  onClick={() => navigate("/login")}
                   className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
                 >
                   Sign In

@@ -47,7 +47,7 @@ const Auth = () => {
   };
 
   const toggleAuth = () => {
-    navigate(isLogin ? "/signup" : "/");
+    navigate(isLogin ? "/signup" : "/login");
     setError("");
   };
 
