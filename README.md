@@ -36,7 +36,7 @@ The application is split into a decoupled frontend and backend, ensuring clear s
 ├── frontend/
 │   ├── src/
 │   │   ├── components/   # Reusable UI components
-│   │   ├── hooks/        # Custom React hooks (useAuth, useApi)
+│   │   ├── hooks/        # Custom React hooks (useApi)
 │   │   ├── layout/       # Page layouts
 │   │   ├── pages/        # Application views (Dashboard, Analytics, etc.)
 │   │   └── App.jsx       # Routing & Context Providers
