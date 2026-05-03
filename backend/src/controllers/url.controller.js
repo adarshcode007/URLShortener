@@ -94,3 +94,29 @@ export const redirectUrl = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+
+export const deleteUrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const url = await Url.findOne({ _id: id, userId: req.user.id });
+
+    if (!url) {
+      return res.status(404).json({ message: "URL not found or unauthorized" });
+    }
+
+    // 1. Delete clicks
+    await Click.deleteMany({ shortCode: url.shortCode });
+
+    // 2. Delete URL from DB
+    await Url.findByIdAndDelete(id);
+
+    // 3. Remove from Redis cache
+    await redis.del(url.shortCode);
+
+    res.json({ message: "URL deleted successfully" });
+  } catch (err) {
+    console.error("DELETE URL ERROR:", err);
+    res.status(500).json({ message: "Failed to delete URL" });
+  }
+};

@@ -10,18 +10,23 @@ import {
   Cell,
   BarChart,
   Bar,
+  CartesianGrid,
 } from "recharts";
 import GlassCard from "../components/GlassCard";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import api from "../hooks/useApi";
 
 export default function Analytics() {
   const { code } = useParams();
+  const navigate = useNavigate();
 
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -38,8 +43,33 @@ export default function Analytics() {
     fetchAnalytics();
   }, [code]);
 
-  if (loading) return <p className="text-gray-400">Loading...</p>;
-  if (error) return <p className="text-red-400">{error}</p>;
+  const handleDelete = async () => {
+    if (!data?._id) return;
+    try {
+      setIsDeleting(true);
+      await api.delete(`/urls/${data._id}`);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Failed to delete link");
+    } finally {
+      setIsDeleting(false);
+      setShowConfirmDelete(false);
+    }
+  };
+
+  if (loading) return (
+    <div className="flex items-center justify-center py-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-500"></div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 font-medium">
+      {error}
+    </div>
+  );
+
   if (!data) return null;
 
   // Daily clicks (line chart)
@@ -71,67 +101,178 @@ export default function Analytics() {
     value,
   }));
 
-  const COLORS = ["#8b5cf6", "#3b82f6", "#22c55e", "#f59e0b"];
+  const COLORS = ["#10b981", "#059669", "#047857", "#065f46"];
 
   return (
-    // center the content and add some padding
-    <div className="max-w-6xl p-6 mx-auto">
-      <h1 className="text-3xl mb-6">Analytics: {code}</h1>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="max-w-5xl mx-auto space-y-10"
+    >
+      {/* Header Section */}
+      <header className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <button 
+            onClick={() => navigate("/dashboard")}
+            className="text-sm text-gray-400 hover:text-emerald-400 transition-colors flex items-center gap-1 group w-fit"
+          >
+            <span className="group-hover:-translate-x-1 transition-transform">←</span> Back to Dashboard
+          </button>
+          
+          <button
+            onClick={() => setShowConfirmDelete(true)}
+            className="px-4 py-2 rounded-lg border border-red-500/20 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-all flex items-center gap-2"
+          >
+            <span>🗑</span> Delete Link
+          </button>
+        </div>
 
-      {/* Total Clicks*/}
-      <GlassCard className="mb-6">
-        <h3 className="text-gray-400">Total Clicks</h3>
-        <p className="text-3xl font-bold mt-2">{data.totalClicks}</p>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-4xl font-bold tracking-tight text-white">Analytics: <span className="text-emerald-400 font-mono">{code}</span></h1>
+          <p className="text-gray-400 text-lg">Detailed performance breakdown for your short link.</p>
+        </div>
+      </header>
+
+      {/* Overview Card */}
+      <GlassCard className="!p-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <h3 className="text-gray-400 text-sm font-medium uppercase tracking-widest">Total Clicks</h3>
+            <p className="text-5xl font-bold mt-2 text-emerald-400 tracking-tighter">{data.totalClicks}</p>
+          </div>
+          <div className="h-px md:h-12 md:w-px bg-white/10"></div>
+          <div className="flex-1">
+            <h3 className="text-gray-400 text-sm font-medium uppercase tracking-widest mb-4">Clicks Over Time</h3>
+            <div className="h-40 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={dailyData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                  <XAxis 
+                    dataKey="date" 
+                    hide 
+                  />
+                  <YAxis hide />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: "#0b0f14", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                    itemStyle={{ color: "#10b981" }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="clicks" 
+                    stroke="#10b981" 
+                    strokeWidth={3}
+                    dot={{ fill: "#10b981", strokeWidth: 2, r: 4, stroke: "#0b0f14" }}
+                    activeDot={{ r: 6, strokeWidth: 0 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
       </GlassCard>
 
-      {/* Daily Clicks */}
-      <GlassCard className="mb-6">
-        <h3 className="mb-4">Clicks Over Time</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={dailyData}>
-            <XAxis dataKey="date" />
-            <YAxis allowDecimals={false} />
-            <Tooltip />
-            <Line type="monotone" dataKey="clicks" stroke="#8b5cf6" />
-          </LineChart>
-        </ResponsiveContainer>
-      </GlassCard>
-
-      {/* Charts Grid*/}
-      <div className="grid grid-cols-2 gap-6">
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Referrer */}
-        <GlassCard>
-          <h3 className="mb-4">Traffic Sources</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={referrerData}
-                dataKey="value"
-                nameKey="name"
-                outerRadius={100}
-                label
-              >
-                {referrerData.map((entry, index) => (
-                  <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
+        <GlassCard className="space-y-6">
+          <h3 className="text-xl font-semibold text-white/90">Traffic Sources</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={referrerData}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={60}
+                  outerRadius={80}
+                  paddingAngle={5}
+                >
+                  {referrerData.map((entry, index) => (
+                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                   contentStyle={{ backgroundColor: "#0b0f14", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </GlassCard>
 
-        {/* 📊 Device */}
-        <GlassCard>
-          <h3 className="mb-4">Device Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={deviceData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="value" fill="#3b82f6" />
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Device */}
+        <GlassCard className="space-y-6">
+          <h3 className="text-xl font-semibold text-white/90">Device Distribution</h3>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={deviceData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff05" vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: "#9ca3af", fontSize: 12 }}
+                />
+                <YAxis hide />
+                <Tooltip 
+                   contentStyle={{ backgroundColor: "#0b0f14", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}
+                   cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                />
+                <Bar dataKey="value" fill="#10b981" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </GlassCard>
       </div>
-    </div>
+
+      {/* Custom Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showConfirmDelete && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConfirmDelete(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm"
+            >
+              <GlassCard className="!p-8 text-center space-y-6 shadow-2xl shadow-red-500/10 border-red-500/20">
+                <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mx-auto text-red-400 text-2xl border border-red-500/20">
+                  🗑
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-bold text-white">Delete Link?</h3>
+                  <p className="text-gray-400 leading-relaxed">
+                    This action is permanent and will delete all associated analytics for <span className="text-white font-mono">{code}</span>.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowConfirmDelete(false)}
+                    className="flex-1 py-3 rounded-lg bg-white/5 hover:bg-white/10 text-white font-semibold transition-colors border border-white/10"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    disabled={isDeleting}
+                    className="flex-1 py-3 rounded-lg bg-red-500 hover:bg-red-600 text-white font-bold transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50"
+                  >
+                    {isDeleting ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
+              </GlassCard>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

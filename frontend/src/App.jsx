@@ -1,22 +1,23 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Login from "./pages/Login";
+import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Analytics from "./pages/Analytics";
+import Landing from "./pages/Landing";
 import MainLayout from "./layout/MainLayout";
-import Signup from "./pages/Signup";
 import ProtectedRoute from "./ProtectedRoute";
 import Navbar from "./components/Navbar";
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="bg-[#0f172a] text-white min-h-screen">
+      <div className="bg-[#0b0f14] text-white min-h-screen">
         <Navbar />
 
         <div className="pt-17">
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/login" element={<Auth />} />
+            <Route path="/signup" element={<Auth />} />
 
             {/* Protected Routes*/}
             <Route
